@@ -4,6 +4,8 @@ const statusBox = document.querySelector("#status");
 const emptyState = document.querySelector("#emptyState");
 const results = document.querySelector("#results");
 const menuItems = document.querySelectorAll(".menu-item");
+const csvButton = document.querySelector("#csvButton");
+let latestScrape = null;
 
 const panels = {
     summary: document.querySelector("#summaryPanel"),
@@ -115,13 +117,70 @@ function escapeAttribute(value) {
     return escapeHtml(value).replaceAll("`", "&#096;");
 }
 
+function csvCell(value) {
+    const text = String(value ?? "");
+    return `"${text.replaceAll('"', '""')}"`;
+}
+
+function createCsvRows(data) {
+    const rows = [["category", "label", "value", "url"]];
+    const headings = Array.isArray(data.headings) ? data.headings : [];
+    const links = Array.isArray(data.links) ? data.links : [];
+    const images = Array.isArray(data.images) ? data.images : [];
+    const videos = Array.isArray(data.videos) ? data.videos : [];
+
+    rows.push(["summary", "source_url", data.url || "", data.url || ""]);
+    rows.push(["summary", "title", data.title || "", ""]);
+    rows.push(["summary", "description", data.description || "", ""]);
+    rows.push(["summary", "text_preview", data.textPreview || "", ""]);
+
+    headings.forEach((heading) => {
+        rows.push(["heading", heading.level || "", heading.text || "", ""]);
+    });
+
+    links.forEach((link) => {
+        rows.push(["link", link.text || "", "", link.url || ""]);
+    });
+
+    images.forEach((image) => {
+        rows.push(["image", image.alt || "Image", "", image.url || ""]);
+    });
+
+    videos.forEach((video) => {
+        rows.push(["video", video.label || "Video", video.type || "", video.url || ""]);
+    });
+
+    return rows.map((row) => row.map(csvCell).join(",")).join("\r\n");
+}
+
+function downloadCsv() {
+    if (!latestScrape) {
+        setStatus("Scrape a page before downloading CSV.", true);
+        return;
+    }
+
+    const csv = createCsvRows(latestScrape);
+    const blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
+    const link = document.createElement("a");
+    const timestamp = new Date().toISOString().slice(0, 19).replaceAll(":", "-");
+    link.href = URL.createObjectURL(blob);
+    link.download = `scrape-results-${timestamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+}
+
 menuItems.forEach((item) => {
     item.addEventListener("click", () => setActiveTab(item.dataset.tab));
 });
 
+csvButton.addEventListener("click", downloadCsv);
+
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
     setStatus("Scraping page...");
+    csvButton.disabled = true;
 
     try {
         const response = await fetch("/api/scrape", {
@@ -135,8 +194,10 @@ form.addEventListener("submit", async (event) => {
             throw new Error(data.error || "Scraping failed.");
         }
 
+        latestScrape = data;
         renderResults(data);
         setActiveTab("summary");
+        csvButton.disabled = false;
         setStatus(data.error || "", Boolean(data.error));
     } catch (error) {
         setStatus(error.message, true);

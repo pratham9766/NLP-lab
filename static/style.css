@@ -156,6 +156,22 @@ input:focus {
     background: var(--accent-dark);
 }
 
+.url-form .secondary-button {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+}
+
+.url-form .secondary-button:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: #f8fbfc;
+}
+
+.url-form .secondary-button:disabled {
+    color: #9aa7ad;
+    cursor: not-allowed;
+}
+
 .status,
 .empty-state,
 .results {
