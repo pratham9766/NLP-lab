@@ -137,7 +137,7 @@ form.addEventListener("submit", async (event) => {
 
         renderResults(data);
         setActiveTab("summary");
-        setStatus("");
+        setStatus(data.error || "", Boolean(data.error));
     } catch (error) {
         setStatus(error.message, true);
     }

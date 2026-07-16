@@ -16,6 +16,27 @@ HEADERS = {
 }
 
 
+def empty_result(url, error):
+    return {
+        "url": url,
+        "title": "Scrape failed",
+        "description": "",
+        "textPreview": "",
+        "counts": {
+            "headings": 0,
+            "links": 0,
+            "images": 0,
+            "videos": 0,
+            "words": 0,
+        },
+        "headings": [],
+        "links": [],
+        "images": [],
+        "videos": [],
+        "error": error,
+    }
+
+
 def is_valid_url(url):
     parsed = urlparse(url)
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
@@ -43,7 +64,14 @@ def add_media_item(collection, seen, page_url, source_url, label, media_type):
 
 def scrape_page(url):
     response = requests.get(url, headers=HEADERS, timeout=12)
-    response.raise_for_status()
+    if response.status_code >= 400:
+        return empty_result(
+            url,
+            (
+                f"The website returned HTTP {response.status_code}. "
+                "It may be blocking automated scraping or the URL may not be publicly accessible."
+            ),
+        ), 200
 
     soup = BeautifulSoup(response.text, "html.parser")
 
@@ -136,12 +164,18 @@ def scrape():
     url = payload.get("url", "").strip()
 
     if not is_valid_url(url):
-        return jsonify({"error": "Please enter a valid http or https URL."}), 400
+        return jsonify(empty_result(url, "Please enter a valid http or https URL.")), 400
 
     try:
-        return jsonify(scrape_page(url))
+        result = scrape_page(url)
+        if isinstance(result, tuple):
+            body, status_code = result
+            return jsonify(body), status_code
+        return jsonify(result)
+    except requests.exceptions.Timeout:
+        return jsonify(empty_result(url, "The website took too long to respond. Try a different URL.")), 200
     except requests.exceptions.RequestException as exc:
-        return jsonify({"error": f"Could not scrape this page: {exc}"}), 502
+        return jsonify(empty_result(url, f"Could not connect to this website: {exc}")), 200
 
 
 if __name__ == "__main__":
