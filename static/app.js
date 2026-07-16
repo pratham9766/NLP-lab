@@ -35,22 +35,29 @@ function createListItem(html) {
 
 function renderList(containerId, rows, emptyText, renderer) {
     const container = document.querySelector(containerId);
+    const safeRows = Array.isArray(rows) ? rows : [];
     container.innerHTML = "";
 
-    if (!rows.length) {
+    if (!safeRows.length) {
         container.appendChild(createListItem(emptyText));
         return;
     }
 
-    rows.forEach((row) => container.appendChild(renderer(row)));
+    safeRows.forEach((row) => container.appendChild(renderer(row)));
 }
 
 function renderResults(data) {
-    document.querySelector("#headingCount").textContent = data.counts.headings;
-    document.querySelector("#linkCount").textContent = data.counts.links;
-    document.querySelector("#imageCount").textContent = data.counts.images;
-    document.querySelector("#videoCount").textContent = data.counts.videos;
-    document.querySelector("#wordCount").textContent = data.counts.words;
+    const counts = data.counts || {};
+    const headings = Array.isArray(data.headings) ? data.headings : [];
+    const links = Array.isArray(data.links) ? data.links : [];
+    const images = Array.isArray(data.images) ? data.images : [];
+    const videos = Array.isArray(data.videos) ? data.videos : [];
+
+    document.querySelector("#headingCount").textContent = counts.headings || headings.length;
+    document.querySelector("#linkCount").textContent = counts.links || links.length;
+    document.querySelector("#imageCount").textContent = counts.images || images.length;
+    document.querySelector("#videoCount").textContent = counts.videos || videos.length;
+    document.querySelector("#wordCount").textContent = counts.words || 0;
 
     document.querySelector("#pageTitle").textContent = data.title;
     const pageUrl = document.querySelector("#pageUrl");
@@ -59,20 +66,20 @@ function renderResults(data) {
     document.querySelector("#pageDescription").textContent = data.description || "No meta description found.";
     document.querySelector("#textPreview").textContent = data.textPreview || "No readable page text found.";
 
-    renderList("#headingsList", data.headings, "No headings found.", (heading) => (
+    renderList("#headingsList", headings, "No headings found.", (heading) => (
         createListItem(`<strong>${heading.level}</strong> ${escapeHtml(heading.text)}`)
     ));
 
-    renderList("#linksList", data.links, "No links found.", (link) => (
+    renderList("#linksList", links, "No links found.", (link) => (
         createListItem(`<a href="${escapeAttribute(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.text)}</a>`)
     ));
 
     const imagesList = document.querySelector("#imagesList");
     imagesList.innerHTML = "";
-    if (!data.images.length) {
+    if (!images.length) {
         imagesList.appendChild(createListItem("No images found."));
     } else {
-        data.images.forEach((image) => {
+        images.forEach((image) => {
             const card = document.createElement("article");
             card.className = "image-card";
             card.innerHTML = `
@@ -83,7 +90,7 @@ function renderResults(data) {
         });
     }
 
-    renderList("#videosList", data.videos, "No videos or video embeds found.", (video) => (
+    renderList("#videosList", videos, "No videos or video embeds found.", (video) => (
         createListItem(`
             <strong>${escapeHtml(video.type)}</strong>
             <a href="${escapeAttribute(video.url)}" target="_blank" rel="noreferrer">${escapeHtml(video.label)}</a>
