@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeautifulSoup Web Scraper</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <aside class="menu">
+        <div class="brand">
+            <span class="brand-mark">BS</span>
+            <div>
+                <h1>Soup Scraper</h1>
+                <p>Simple web data explorer</p>
+            </div>
+        </div>
+
+        <nav>
+            <button class="menu-item active" data-tab="summary">Summary</button>
+            <button class="menu-item" data-tab="headings">Headings</button>
+            <button class="menu-item" data-tab="links">Links</button>
+            <button class="menu-item" data-tab="images">Images</button>
+            <button class="menu-item" data-tab="videos">Videos</button>
+        </nav>
+    </aside>
+
+    <main class="workspace">
+        <section class="search-panel">
+            <div>
+                <p class="eyebrow">BeautifulSoup + Python</p>
+                <h2>Scrape a web page in one click</h2>
+            </div>
+
+            <form id="scrapeForm" class="url-form">
+                <input
+                    id="urlInput"
+                    type="url"
+                    placeholder="https://quotes.toscrape.com/"
+                    value="https://quotes.toscrape.com/"
+                    required
+                >
+                <button type="submit">Scrape</button>
+            </form>
+        </section>
+
+        <section id="status" class="status hidden"></section>
+
+        <section id="emptyState" class="empty-state">
+            <h3>Enter a URL to begin</h3>
+            <p>The scraper will extract the page title, description, headings, links, images, videos, and a text preview.</p>
+        </section>
+
+        <section id="results" class="results hidden">
+            <div class="stats">
+                <article>
+                    <span id="headingCount">0</span>
+                    <p>Headings</p>
+                </article>
+                <article>
+                    <span id="linkCount">0</span>
+                    <p>Links</p>
+                </article>
+                <article>
+                    <span id="imageCount">0</span>
+                    <p>Images</p>
+                </article>
+                <article>
+                    <span id="videoCount">0</span>
+                    <p>Videos</p>
+                </article>
+                <article>
+                    <span id="wordCount">0</span>
+                    <p>Words</p>
+                </article>
+            </div>
+
+            <div class="tab-panel active" id="summaryPanel">
+                <h3 id="pageTitle"></h3>
+                <a id="pageUrl" href="#" target="_blank" rel="noreferrer"></a>
+                <p id="pageDescription" class="description"></p>
+                <div class="text-preview" id="textPreview"></div>
+            </div>
+
+            <div class="tab-panel" id="headingsPanel">
+                <div class="list" id="headingsList"></div>
+            </div>
+
+            <div class="tab-panel" id="linksPanel">
+                <div class="list" id="linksList"></div>
+            </div>
+
+            <div class="tab-panel" id="imagesPanel">
+                <div class="image-grid" id="imagesList"></div>
+            </div>
+
+            <div class="tab-panel" id="videosPanel">
+                <div class="list" id="videosList"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
