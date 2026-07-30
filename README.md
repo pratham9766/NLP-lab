@@ -1,4 +1,4 @@
-# NLP Lab - BeautifulSoup Web Scraper
+# Web Scraper
 
 A simple Python web application for scraping useful page data with
 BeautifulSoup. The app includes a clean HTML, CSS, and JavaScript interface
